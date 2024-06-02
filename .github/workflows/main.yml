@@ -23,7 +23,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           tag_name: ${{ steps.extract_version.outputs.version }}
           release_name: Release ${{ steps.extract_version.outputs.version }}
@@ -75,7 +75,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: target/release/bundle/macos/YourApp.app
@@ -86,7 +86,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: target/release/bundle/windows/YourApp.exe
