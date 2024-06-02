@@ -29,7 +29,6 @@ onMounted(async () => {
 
 const osThemeRef = useOsTheme();
 const theme = computed(() => osThemeRef.value === "dark" ? darkTheme : null)
-
 </script>
 
 <template>
