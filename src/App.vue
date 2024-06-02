@@ -73,7 +73,7 @@ html, body, #app,
   height: 100%;
 }
 
-.titlebar {
+/*.titlebar {
   height: 30px;
   background: #329ea3;
   user-select: none;
@@ -97,5 +97,5 @@ html, body, #app,
 
 .titlebar-button:hover {
   background: #5bbec3;
-}
+}*/
 </style>
