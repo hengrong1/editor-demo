@@ -77,7 +77,7 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: src-tauri/target/release/bundle/macos/Editor.app
           asset_name: Editor-macOS-x64.zip
-          content_type: application/zip
+          # content_type: application/zip
 
       - name: Upload Artifact (Windows)
         if: matrix.os == 'windows-latest'
@@ -88,4 +88,4 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: src-tauri/target/release/bundle/windows/Editor.exe
           asset_name: Editor-windows-x64.exe
-          content_type: application/vnd.microsoft.portable-executable
+          # content_type: application/vnd.microsoft.portable-executable
