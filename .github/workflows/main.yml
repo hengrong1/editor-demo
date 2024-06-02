@@ -63,7 +63,7 @@ jobs:
         run: cargo install tauri-cli --locked
 
       - name: Build Tauri App
-        run: pnpm tauri build --release
+        run: pnpm tauriDev
 
       - name: Upload Artifact (MacOS)
         if: matrix.os == 'macos-latest'
@@ -72,8 +72,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: target/release/bundle/macos/YourApp.app
-          asset_name: YourApp-macOS-x64.zip
+          asset_path: target/release/bundle/macos/Editor.app
+          asset_name: Editor-macOS-x64.zip
           content_type: application/zip
 
       - name: Upload Artifact (Windows)
@@ -83,6 +83,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: target/release/bundle/windows/YourApp.exe
-          asset_name: YourApp-windows-x64.exe
+          asset_path: target/release/bundle/windows/Editor.exe
+          asset_name: Editor-windows-x64.exe
           content_type: application/vnd.microsoft.portable-executable
