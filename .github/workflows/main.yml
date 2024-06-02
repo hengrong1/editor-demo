@@ -67,27 +67,32 @@ jobs:
 
       - name: Build Tauri App
         run: pnpm tauriBuild
-
-      - name: Upload Artifact (MacOS)
-        if: matrix.os == 'macos-latest'
-        uses: actions/upload-release-asset@v1
+      - uses: tauri-apps/tauri-action@v0.3
         env:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
-          # upload_url: ${{ needs.create-release.outputs.upload_url }}
-          # asset_path: src-tauri/target/release/bundle/macos/editor.app
-          # asset_name: Editor-macOS-x64.zip
-          # content_type: application/zip
           releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
 
-      - name: Upload Artifact (Windows)
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
-        with:
-          # upload_url: ${{ needs.create-release.outputs.upload_url }}
-          # asset_path: src-tauri/target/release/bundle/windows/editor.exe
-          # asset_name: Editor-windows-x64.exe
-          # content_type: application/vnd.microsoft.portable-executable
-          releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+      # - name: Upload Artifact (MacOS)
+      #   if: matrix.os == 'macos-latest'
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
+      #   with:
+      #     # upload_url: ${{ needs.create-release.outputs.upload_url }}
+      #     # asset_path: src-tauri/target/release/bundle/macos/editor.app
+      #     # asset_name: Editor-macOS-x64.zip
+      #     # content_type: application/zip
+      #     releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+
+      # - name: Upload Artifact (Windows)
+      #   if: matrix.os == 'windows-latest'
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
+      #   with:
+      #     # upload_url: ${{ needs.create-release.outputs.upload_url }}
+      #     # asset_path: src-tauri/target/release/bundle/windows/editor.exe
+      #     # asset_name: Editor-windows-x64.exe
+      #     # content_type: application/vnd.microsoft.portable-executable
+      #     releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
