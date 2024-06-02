@@ -63,7 +63,7 @@ jobs:
 
       - name: Install pnpm
         run: npm install -g pnpm
-        
+
       - name: Pnpm Install Dependencies
         run: pnpm i 
 
@@ -74,8 +74,8 @@ jobs:
           version: latest
 
       # 可选，如果需要使用 rsw 构建 wasm，则安装 rsw
-      - name: Install rsw
-        run: cargo install rsw
+      # - name: Install rsw
+      #   run: cargo install rsw
 
       # 安装依赖执行构建，以及推送 github release
       - name: Install app dependencies and build it
