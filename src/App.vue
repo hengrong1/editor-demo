@@ -6,7 +6,6 @@ import {darkTheme, useOsTheme} from "naive-ui";
 import {getCurrent} from "@tauri-apps/api/window";
 import {confirm} from '@tauri-apps/api/dialog';
 
-
 const text = ref('\n\n\n\n')
 const onSave = ({md, html}) => {
   console.log(md, html)
