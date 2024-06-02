@@ -72,7 +72,7 @@ jobs:
         run: cargo install tauri-cli --locked
 
       - name: Build Tauri App
-        run: tauri build --release
+        run: pnpm tauri build --release
 
       - name: Upload Artifact (MacOS)
         if: matrix.os == 'macos-latest'
