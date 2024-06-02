@@ -5,94 +5,124 @@ on:
     tags:
       - 'v*'
 
+# 需要运行的作业组合
 jobs:
+  # 任务：创建 release 版本
   create-release:
     runs-on: ubuntu-latest
     outputs:
-      release_id: ${{ steps.create_release.outputs.id }}
-
+      RELEASE_UPLOAD_ID: ${{ steps.create_release.outputs.id }}
+ 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Extract Version
-        id: extract_version
-        run: echo ::set-output name=version::${GITHUB_REF#refs/tags/v}
-
-      - name: Create GitHub Release
+      - uses: actions/checkout@v2
+      # 查询版本号（tag）
+      - name: Query version number
+        id: get_version
+        shell: bash
+        run: |
+          echo "using version tag ${GITHUB_REF:10}"
+          echo ::set-output name=version::"${GITHUB_REF:10}"
+ 
+      # 根据查询到的版本号创建 release
+      - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
-          tag_name: ${{ steps.extract_version.outputs.version }}
-          release_name: Release ${{ steps.extract_version.outputs.version }}
-          draft: false
-          prerelease: false
+          tag_name: '${{ steps.get_version.outputs.VERSION }}'
+          release_name: 'app ${{ steps.get_version.outputs.VERSION }}'
+          body: 'See the assets to download this version and install.'
 
-  build-and-deploy:
+  # 编译 Tauri
+  build-tauri:
     needs: create-release
-    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        platform: [macos-latest, windows-latest]
 
+    runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Setup Node.js & pnpm
-        uses: actions/setup-node@v2
+    # 安装 Node.js
+      - name: Setup node
+        uses: actions/setup-node@v1
         with:
           node-version: 20
 
-      - name: Install pnpm
-        run: npm install -g pnpm
-        
+      # 安装 Rust
+      - name: Install Rust stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      # 使用 Rust 缓存，加快安装速度
+      - uses: Swatinem/rust-cache@v1
+
       - name: Pnpm Install Dependencies
         run: pnpm i 
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      # 可选，如果需要将 Rust 编译为 wasm，则安装 wasm-pack
+      - uses: jetli/wasm-pack-action@v0.3.0
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
+          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
+          version: latest
 
-      - name: Cache Rustup Components
-        uses: Swatinem/rust-cache@v1
+      # 可选，如果需要使用 rsw 构建 wasm，则安装 rsw
+      - name: Install rsw
+        run: cargo install rsw
 
-      - name: Install Tauri CLI
-        run: cargo install tauri-cli --locked
-
-      - name: Build Tauri App
+      # 安装依赖执行构建，以及推送 github release
+      - name: Install app dependencies and build it
+      # 这里的pubhome要修改为你package.json里面配置的编译命令
         run: pnpm tauriBuild
       - uses: tauri-apps/tauri-action@v0.3
         env:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
           releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+        
+  # build-and-deploy:
+  #   needs: create-release
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [macos-latest, windows-latest]
 
-      # - name: Upload Artifact (MacOS)
-      #   if: matrix.os == 'macos-latest'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
-      #   with:
-      #     # upload_url: ${{ needs.create-release.outputs.upload_url }}
-      #     # asset_path: src-tauri/target/release/bundle/macos/editor.app
-      #     # asset_name: Editor-macOS-x64.zip
-      #     # content_type: application/zip
-      #     releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+  #   steps:
+  #     - name: Checkout Code
+  #       uses: actions/checkout@v2
 
-      # - name: Upload Artifact (Windows)
-      #   if: matrix.os == 'windows-latest'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
-      #   with:
-      #     # upload_url: ${{ needs.create-release.outputs.upload_url }}
-      #     # asset_path: src-tauri/target/release/bundle/windows/editor.exe
-      #     # asset_name: Editor-windows-x64.exe
-      #     # content_type: application/vnd.microsoft.portable-executable
-      #     releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+  #     - name: Setup Node.js & pnpm
+  #       uses: actions/setup-node@v2
+  #       with:
+  #         node-version: 20
+
+  #     - name: Install pnpm
+  #       run: npm install -g pnpm
+        
+  #     - name: Pnpm Install Dependencies
+  #       run: pnpm i 
+
+  #     - name: Setup Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         profile: minimal
+  #         toolchain: stable
+  #         override: true
+
+  #     - name: Cache Rustup Components
+  #       uses: Swatinem/rust-cache@v1
+
+  #     - name: Install Tauri CLI
+  #       run: cargo install tauri-cli --locked
+
+  #     - name: Build Tauri App
+  #       run: pnpm tauriBuild
+  #     - uses: tauri-apps/tauri-action@v0.3
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
+  #       with:
+  #         releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
