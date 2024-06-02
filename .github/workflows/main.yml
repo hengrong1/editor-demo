@@ -48,8 +48,6 @@ jobs:
 
       - name: Install pnpm
         run: npm install -g pnpm
-        with:
-          cache: 'pnpm'
 
       - name: Setup Rust
         uses: actions-rs/toolchain@v1
