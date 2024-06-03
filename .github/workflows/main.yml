@@ -1,131 +1,50 @@
-name: Multi-Platform Release CI
-
+name: Release
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
-# 需要运行的作业组合
 jobs:
-  # 任务：创建 release 版本
-  create-release:
-    runs-on: ubuntu-latest
-    outputs:
-      RELEASE_UPLOAD_ID: ${{ steps.create_release.outputs.id }}
- 
-    steps:
-      - uses: actions/checkout@v2
-      # 查询版本号（tag）
-      - name: Query version number
-        id: get_version
-        shell: bash
-        run: |
-          echo "using version tag ${GITHUB_REF:10}"
-          echo ::set-output name=version::"${GITHUB_REF:10}"
- 
-      # 根据查询到的版本号创建 release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
-        with:
-          tag_name: '${{ steps.get_version.outputs.VERSION }}'
-          release_name: 'app ${{ steps.get_version.outputs.VERSION }}'
-          body: 'See the assets to download this version and install.'
-
-  # 编译 Tauri
-  build-tauri:
-    needs: create-release
+  release:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         platform: [macos-latest, windows-latest]
-
     runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    # 安装 Node.js
-      - name: Setup node
-        uses: actions/setup-node@v1
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
         with:
-          node-version: 20
+          workspaces: './src-tauri -> target'
 
-      # 安装 Rust
-      - name: Install Rust stable
-        uses: actions-rs/toolchain@v1
+      - name: Sync node version and setup cache
+        uses: actions/setup-node@v3
         with:
-          toolchain: stable
+          node-version: 'lts/*'
+          cache: 'pnpm' # Set this to npm, yarn or pnpm.
 
-      # 使用 Rust 缓存，加快安装速度
-      - uses: Swatinem/rust-cache@v1
+      - name: Install frontend dependencies
+        # If you don't have `beforeBuildCommand` configured you may want to build your frontend here too.
+        run: pnpm install # Change this to npm, yarn or pnpm.
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
 
-      - name: Pnpm Install Dependencies
-        run: pnpm i 
-
-      # 可选，如果需要将 Rust 编译为 wasm，则安装 wasm-pack
-      - uses: jetli/wasm-pack-action@v0.3.0
-        with:
-          # Optional version of wasm-pack to install(eg. 'v0.9.1', 'latest')
-          version: latest
-
-      # 可选，如果需要使用 rsw 构建 wasm，则安装 rsw
-      # - name: Install rsw
-      #   run: cargo install rsw
-
-      # 安装依赖执行构建，以及推送 github release
-      - name: Install app dependencies and build it
-      # 这里的pubhome要修改为你package.json里面配置的编译命令
-        run: pnpm tauriBuild
-      - uses: tauri-apps/tauri-action@v0.3
         env:
           GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
         with:
-          releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
-        
-  # build-and-deploy:
-  #   needs: create-release
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [macos-latest, windows-latest]
-
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v2
-
-  #     - name: Setup Node.js & pnpm
-  #       uses: actions/setup-node@v2
-  #       with:
-  #         node-version: 20
-
-  #     - name: Install pnpm
-  #       run: npm install -g pnpm
-        
-  #     - name: Pnpm Install Dependencies
-  #       run: pnpm i 
-
-  #     - name: Setup Rust
-  #       uses: actions-rs/toolchain@v1
-  #       with:
-  #         profile: minimal
-  #         toolchain: stable
-  #         override: true
-
-  #     - name: Cache Rustup Components
-  #       uses: Swatinem/rust-cache@v1
-
-  #     - name: Install Tauri CLI
-  #       run: cargo install tauri-cli --locked
-
-  #     - name: Build Tauri App
-  #       run: pnpm tauriBuild
-  #     - uses: tauri-apps/tauri-action@v0.3
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.MY_ACTIONS_TOKEN }}
-  #       with:
-  #         releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_ID }}
+          tagName: ${{ github.ref_name }} # This only works if your workflow triggers on new tags.
+          releaseName: 'App Name v__VERSION__' # tauri-action replaces \_\_VERSION\_\_ with the app version.
+          releaseBody: 'See the assets to download and install this version.'
+          releaseDraft: true
+          prerelease: false
