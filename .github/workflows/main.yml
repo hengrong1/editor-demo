@@ -52,3 +52,4 @@ jobs:
           releaseBody: 'See the assets to download and install this version.'
           releaseDraft: true
           prerelease: false
+          releaseId: ${{ needs.create-release.outputs.RELEASE_UPLOAD_}} # This is the output of the create-release job.
