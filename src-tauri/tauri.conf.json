@@ -7,18 +7,18 @@
   },
   "package": {
     "productName": "editor",
-    "version": "0.0.0"
+    "version": "0.0.1"
   },
   "tauri": {
     "allowlist": {
       "dialog": {
-        "confirm": true
+        "ask": true,
+        "save": true
+      },
+      "fs": {
+        "writeFile": true
       },
       "window": {
-        "maximize": true,
-        "unmaximize": true,
-        "minimize": true,
-        "unminimize": true,
         "close": true
       }
     },

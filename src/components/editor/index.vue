@@ -12,7 +12,7 @@
         previewTheme="arknights"
         style="height: 100%;"
         @onHtmlChanged="onHtmlChanged"
-        @onSave="onSave"
+        @onSave="saveFn"
     >
       <template #defToolbars>
         <MyMark/>
@@ -176,15 +176,22 @@ const text = ref(props.text)
 const mdEditor = ref()
 const showModal = ref(false)
 const dialog = useDialog()
-const message = useMessage()
-const theme = useOsTheme();
+const theme = useOsTheme()
+
+import { createDiscreteApi } from "naive-ui";
+import {fs} from "@tauri-apps/api";
+import {save} from "@tauri-apps/api/dialog";
+const {message} = createDiscreteApi(['message'])
 
 
+/*
 const onSave = (v, h) => {
-  h.then((html) => {
+  /!*h.then((html) => {
     console.log({v, html});
-  })
+  })*!/
+  saveFn(v)
 }
+*/
 
 const toolbars = [
   'revoke',
@@ -501,7 +508,7 @@ const playOptions = {
   ],
 }
 const onHtmlChanged = (h) => {
-  console.log(h)
+  // console.log(h)
   if (h.includes('<video')) {
     nextTick(() => {
       const videos = document.querySelectorAll('.video-player')
@@ -528,6 +535,28 @@ const onHtmlChanged = (h) => {
     });
   }
 }
+
+const saveFn = async (md, html) => {
+  const filePath = await save({
+    filters: [{
+      name: 'MarkDown',
+      extensions: ['md']
+    }]
+  });
+  console.log(filePath);
+  await saveTextToFile(filePath, md)
+}
+async function saveTextToFile(filePath, text) {
+  try {
+    await fs.writeTextFile(filePath, text);
+    console.log("文件已保存");
+    message.success('文件保存成功')
+  } catch (error) {
+    console.error("保存文件时出错:", error);
+    message.success('文件保存成功', error)
+  }
+}
+
 
 </script>
 <style scoped>
