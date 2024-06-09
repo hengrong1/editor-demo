@@ -19,14 +19,37 @@
         "writeFile": true
       },
       "window": {
-        "close": true
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true,
+        "setAlwaysOnTop": true
       }
     },
     "windows": [
       {
-        "title": "editor",
+        "title": "Editor",
         "width": 1100,
-        "height": 600
+        "height": 600,
+        "minWidth": 1100,
+        "minHeight": 600,
+        "visible": false,
+        "decorations": false,
+        "theme": "Light",
+        "center": true
+      },
+      {
+        "width": 1100,
+        "height": 600,
+        "decorations": false,
+        "url": "splashscreen.html",
+        "label": "splashscreen",
+        "center": true
       }
     ],
     "security": {
@@ -42,12 +65,7 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ],
-      "windows": {
-        "webviewInstallMode": {
-          "type": "skip"
-        }
-      }
+      ]
     }
   }
 }

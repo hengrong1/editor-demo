@@ -1,48 +1,38 @@
 <script setup>
-import {ref} from 'vue'
-import mdEditorV3 from './components/editor/index.vue'
-
 import {darkTheme, useOsTheme} from "naive-ui";
-import {getCurrent} from "@tauri-apps/api/window";
-import {ask} from '@tauri-apps/api/dialog';
-
-const text = ref('\n\n\n\n')
-const onSave = ({md, html}) => {
-  console.log(md, html)
-  text.value = md
-}
-
-onMounted(async () => {
-  await getCurrent().onCloseRequested(async (event) => {
-    const asked = await ask('是否关闭?',
-        {
-          cancelLabel: '等下，我还没保存',
-          okLabel: '毁灭吧，我累了',
-          type: 'warning'
-        }
-    );
-    if (!asked) {
-      event.preventDefault();
-    }
-  });
-})
+import Layout from './layout/index.vue'
+import {naiveUiThemeOverrides} from "./assets/naive-ui-theme-overrides.js";
 
 const osThemeRef = useOsTheme();
 const theme = computed(() => osThemeRef.value === "dark" ? darkTheme : null)
+/*onMounted(() => {
+  window.addEventListener('keydown', preventShortcuts);
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', preventShortcuts);
+})
+function preventShortcuts(event) {
+  // 列出需要禁用的功能键和它们的组合
+  const forbiddenKeys = ['F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12'];
+  const isFnKey = forbiddenKeys.includes(event.key);
+  const isBrowserShortcut = (
+      (event.ctrlKey || event.metaKey) &&
+      (event.key === 'r' || event.key === 'f' || event.key === 'n')
+  );
+  console.log(event);
+  if (isFnKey || isBrowserShortcut) {
+    event.preventDefault();
+  }
+}*/
+
 </script>
 
 <template>
-  <n-config-provider :theme="theme" style="height: 100%;">
+  <n-config-provider :theme="theme" :theme-overrides="naiveUiThemeOverrides" style="height: 100%;">
     <n-modal-provider>
       <n-dialog-provider>
         <n-message-provider>
-          <div class="container">
-            <md-editor-v3
-                :text="text"
-                style="height: 100%;"
-                @onSave="onSave"
-            />
-          </div>
+          <layout/>
         </n-message-provider>
       </n-dialog-provider>
     </n-modal-provider>
@@ -50,8 +40,11 @@ const theme = computed(() => osThemeRef.value === "dark" ? darkTheme : null)
 </template>
 
 <style>
-html, body, #app,
-.container {
+html, body, #app {
   height: 100%;
+}
+body {
+  border: 1px solid #aaa;
+  box-sizing: border-box;
 }
 </style>

@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Editor: typeof import('./src/components/editor/index.vue')['default']
+    MyEmoji: typeof import('./src/components/editor/customToolbas/MyEmoji.vue')['default']
     MyImage: typeof import('./src/components/editor/customToolbas/MyImage.vue')['default']
     MyImport: typeof import('./src/components/editor/customToolbas/MyImport.vue')['default']
     MyLink: typeof import('./src/components/editor/customToolbas/MyLink.vue')['default']
@@ -22,12 +23,9 @@ declare module 'vue' {
     NFormItem: typeof import('naive-ui')['NFormItem']
     NInput: typeof import('naive-ui')['NInput']
     NMessageProvider: typeof import('naive-ui')['NMessageProvider']
-    NModal: typeof import('naive-ui')['NModal']
     NModalProvider: typeof import('naive-ui')['NModalProvider']
     NRadioButton: typeof import('naive-ui')['NRadioButton']
     NRadioGroup: typeof import('naive-ui')['NRadioGroup']
     NSpace: typeof import('naive-ui')['NSpace']
-    NTabPane: typeof import('naive-ui')['NTabPane']
-    NTabs: typeof import('naive-ui')['NTabs']
   }
 }

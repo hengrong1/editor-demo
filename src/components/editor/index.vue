@@ -12,7 +12,6 @@
         previewTheme="arknights"
         style="height: 100%;"
         @onHtmlChanged="onHtmlChanged"
-        @onSave="saveFn"
     >
       <template #defToolbars>
         <MyMark/>
@@ -22,25 +21,7 @@
             <div class="md-editor-toolbar-item-name">导入</div>
           </template>
         </NormalToolbar>
-        <NormalToolbar title="导出" @onClick="exportFile">
-          <template #trigger>
-            <icon class=" md-editor-icon" icon="tabler:file-export"></icon>
-            <div class="md-editor-toolbar-item-name">导出</div>
-          </template>
-        </NormalToolbar>
-        <NormalToolbar title="插入文件" @onClick="addResource">
-          <template #trigger>
-            <icon class=" md-editor-icon" icon="tabler:file-plus">视频</icon>
-            <div class="md-editor-toolbar-item-name">文件</div>
-          </template>
-        </NormalToolbar>
-        <my-media />
-        <NormalToolbar title="选择模板" @onClick="addTemplates">
-          <template #trigger>
-            <icon class=" md-editor-icon" icon="tabler:layout-dashboard"></icon>
-            <div class="md-editor-toolbar-item-name">模板</div>
-          </template>
-        </NormalToolbar>
+        <my-media/>
         <my-image/>
         <MyLink/>
         <NormalToolbar title="语法帮助" @onClick="showModal=true">
@@ -49,44 +30,14 @@
             <div class="md-editor-toolbar-item-name">帮助</div>
           </template>
         </NormalToolbar>
-        <NormalToolbar title="插入表情" @onClick="showModal=true">
+        <NormalToolbar title="保存" @onClick="saveFn">
           <template #trigger>
-            <Icon class=" md-editor-icon" icon="tabler:mood-plus"></Icon>
-            <div class="md-editor-toolbar-item-name">表情</div>
+            <Icon class=" md-editor-icon" icon="akar-icons:save"></Icon>
+            <div class="md-editor-toolbar-item-name">保存</div>
           </template>
         </NormalToolbar>
       </template>
     </MdEditor>
-    <n-modal
-        v-model:show="showModal"
-        :content-style="{ width: '800px',height: '480px'}"
-        :mask-closable="false"
-        :tabs-padding="20"
-        pane-style="padding: 20px;"
-        preset="card"
-        style="width: 800px;height: 600px;"
-    >
-      <template #header>
-        title
-      </template>
-      <n-tabs
-          animated type="line">
-        <n-tab-pane name="imageTab1" tab="图片上传">
-
-
-        </n-tab-pane>
-        <n-tab-pane name="imageTab2" tab="资源库">
-
-
-        </n-tab-pane>
-      </n-tabs>
-      <template #footer>
-        <n-space>
-          <n-button @click="showModal = false">取消</n-button>
-          <n-button type="primary" @click="showModal = false">确定</n-button>
-        </n-space>
-      </template>
-    </n-modal>
   </div>
 </template>
 
@@ -101,12 +52,18 @@ import {videoPlugin} from './plugins/media.js'
 import Plyr from 'plyr'
 import 'plyr/dist/plyr.css'
 import {Icon} from '@iconify/vue';
-import {darkTheme, useDialog, useMessage, useOsTheme} from 'naive-ui'
+import {createDiscreteApi, useDialog, useOsTheme} from 'naive-ui'
+import {fs} from "@tauri-apps/api";
+import {save} from "@tauri-apps/api/dialog";
+import {full as emoji} from 'markdown-it-emoji'
+import twemoji from 'twemoji'
 
 import MyLink from './customToolbas/MyLink.vue'
 import MyMark from './customToolbas/MyMark.vue'
 import MyImage from "./customToolbas/MyImage.vue";
 import MyMedia from "./customToolbas/MyMedia.vue";
+
+const {message} = createDiscreteApi(['message'])
 
 config({
   editorConfig: {
@@ -134,7 +91,7 @@ config({
           save: '保存',
           prettier: '美化',
           pageFullscreen: '全屏',
-          preview: '预览',
+          preview: '显示预览',
           catalog: '目录'
         },
         titleItem: {
@@ -164,6 +121,18 @@ config({
     md
         .use(MarkExtension)
         .use(videoPlugin)
+        .use(emoji)
+    // md.renderer.rules.video = (tokens, idx) => {
+    //   console.log(tokens, idx);
+    // }
+    md.renderer.rules.emoji = function (token, idx) {
+      return twemoji.parse(token[idx].content, {
+        base: './emoji/', // public目录
+        folder: '72x72',
+        ext: '.png',
+        className: 'emoji not-zoom'
+      });
+    }
   }
 })
 const props = defineProps({
@@ -178,25 +147,9 @@ const showModal = ref(false)
 const dialog = useDialog()
 const theme = useOsTheme()
 
-import { createDiscreteApi } from "naive-ui";
-import {fs} from "@tauri-apps/api";
-import {save} from "@tauri-apps/api/dialog";
-const {message} = createDiscreteApi(['message'])
-
-
-/*
-const onSave = (v, h) => {
-  /!*h.then((html) => {
-    console.log({v, html});
-  })*!/
-  saveFn(v)
-}
-*/
-
 const toolbars = [
   'revoke',
   'next',
-  // 'save',
   '-',
   'bold',
   'underline',
@@ -212,27 +165,19 @@ const toolbars = [
   'orderedList',
   'task',
   '-',
-  // 'codeRow',
   'code',
-  7, // 链接
-  6,//图片
-  // 3,
-  4,// 插入视频
+  4, // 链接
+  3,//图片
+  2,// 插入视频
   'table',
-  //,//插入文件
   '-',
   1,//导入
-  'save',
-  //2, //,导出
-  '-',
-  //5,//选择模板
+  6,
   '=',
   'prettier',
-  // 'pageFullscreen',
   'preview',
-  // 'previewOnly',
   'catalog',
-  // 8 // 语法帮助
+  // 5 // 语法帮助
 ]
 
 const customIcon = {
@@ -375,19 +320,7 @@ const customIcon = {
       icon: 'tabler:article',
       class: 'md-editor-icon'
     }
-  },
-  baocun: {
-    component: Icon,
-    props: {
-      icon: 'akar-icons:save',
-      class: 'md-editor-icon'
-    }
   }
-}
-
-const addTemplates = () => {
-  // 获取编辑器内容,如果有内容则提示是否覆盖,否则直接插入模板
-  console.log('添加模版')
 }
 
 const addResource = () => {
@@ -434,9 +367,6 @@ const importMDFile = () => {
     })
   }
 
-}
-const exportFile = () => {
-  console.log('exportFile')
 }
 
 let players = [];
@@ -544,8 +474,13 @@ const saveFn = async (md, html) => {
     }]
   });
   console.log(filePath);
-  await saveTextToFile(filePath, md)
+  if (filePath) {
+    await saveTextToFile(filePath, md)
+  } else {
+    message.info('取消保存...')
+  }
 }
+
 async function saveTextToFile(filePath, text) {
   try {
     await fs.writeTextFile(filePath, text);
@@ -557,7 +492,9 @@ async function saveTextToFile(filePath, text) {
   }
 }
 
-
+defineExpose({
+  saveFn
+})
 </script>
 <style scoped>
 .editor-container :deep(.md-editor-table-shape-col-default) {
@@ -576,4 +513,18 @@ async function saveTextToFile(filePath, text) {
   align-items: center;
 }
 
+:deep(.md-editor-toolbar-wrapper .md-editor-toolbar-item:hover),
+:deep(.md-editor-menu-item:hover) {
+  background: rgba(var(--primary-color, 220, 220, 220), .1);
+  border-radius: 6px;
+  transition: all .5s;
+}
+
+:deep(.md-editor-catalog-editor) {
+  z-index: 11;
+}
+
+:deep(.emoji) {
+  height: 1.2em;
+}
 </style>
